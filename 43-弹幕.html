@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/font-awesome.min.css">
+    <style>
+        body{
+            background-color: #111;
+        }
+        .player{
+            width: 1000px;
+            height: 610px;    
+            margin: 0 auto;   
+            border: 1px solid #fff;
+            /* background-color: gold;  */
+        }
+        .video{
+            width: 1000px;
+            height: 500px;
+            border-bottom: 1px solid #fff;
+        }
+        .video video{
+            width: 1000px;
+            height: 500px;
+        }
+        .control{
+            width: 100%;
+            height: 50px;
+            /* border-bottom: 1px solid #fff; */
+            /* background-color: #f00; */
+        }
+        
+        .control #play{
+            width: 50px;
+            height: 50px;
+            /* background-color: pink; */
+            float: left;
+            font-size: 50px;
+            padding-left: 10px;
+            color: #fff;
+        }
+        .control #full{
+            width: 50px;
+            height: 50px;
+            /* background-color: pink; */
+            float: right;
+            font-size: 50px;
+            padding-left: 10px;
+            color: #fff;
+        }
+        .word{
+            height: 60px;
+            width: 100%;
+            /* background-color: green; */
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        #btn{
+            width: 80px;
+            height: 40px;
+            border-radius: 10px;
+            margin-right: 30px;
+            
+        }
+        #txt{
+            width: 200px;
+            height: 40px;
+            float: left;
+            margin-right: 50px;
+        }
+        .player .father{
+            float: left;
+            width: 880px;
+            height: 50px;
+            /* background-color: #f0f; */
+        }
+        .player .father .son{
+            height: 50px;
+            width: 0;
+            background-color: gray;
+        }
+    </style>
+</head>
+<body>
+    <div class="player">
+        <div class="video">
+            <video src="./movie01.mp4"></video>
+        </div>    
+
+        <div class="control">
+            <a href="#" id="play" class="fa fa-play">
+            </a>
+            <div class="father">
+                <div class="son"></div>
+            </div>
+            <a href="#" id="full" class="fa fa-arrows-alt">
+            </a>
+        </div>
+
+        <div class="word">
+            <input id="btn" type="button" value="发射">
+            <input id="txt" type="text">
+        </div>
+    </div>
+</body>
+</html>
+<script src="./jquery-1.12.4.js"></script>
+<script>
+    var video = document.querySelector("video");
+    var $video = $(video);
+    var son = $('.son')[0];
+    var father = $(".father")[0];
+    console.log(son);
+    
+    // 点击播放或暂停
+    $("#play").click(function(){
+        if(this.className.indexOf('fa-play') != -1){
+            video.play();
+            this.classList.remove('fa-play');
+            this.classList.add('fa-pause');
+        }else{
+            video.pause();
+            this.classList.remove('fa-pause');
+            this.classList.add('fa-play');
+        }      
+    });
+    // 点击全屏事件
+    $("#full").click(function(){
+        if(video.webkitRequestFullScreen){
+            video.webkitRequestFullScreen();
+        }else if(video.mozRequestFullScreen){
+            video.mozRequestFullScreen();
+        }else{
+            video.msRequestFullScreen();
+        }
+    });
+    // 进度条事件
+    video.ontimeupdate = function(){
+        son.style.width = video.currentTime/video.duration *100 + "%";
+    };
+
+    // 点击进度条跳转页面事件
+    $(".father").click(function(e){
+        e = e || window.event;
+        video.currentTime = e.offsetX/father.offsetWidth * video.duration;
+    });
+
+    /*********************弹幕事件***************************/ 
+
+    // 随机生成颜色
+    // 通过随机生成三个小于256的数字给 rgb颜色法
+    function getColor(){
+        var r = Math.floor(256*Math.random());
+        var g = Math.floor(256*Math.random());
+        var b = Math.floor(256*Math.random());
+        return 'rgb(' + r + ',' +  g + ',' + b + ')';
+    }
+
+    // 随机生成高度
+    // 获取到屏幕的高度乘以一个随机数
+    function getHeight(){
+        var videoHeight = $video.height();
+        return videoHeight * Math.random();
+    }
+
+    
+    // 发送弹幕
+    // 给按钮一个点击事件
+    $("#btn").click(function(){
+        // 获取到输入框中的内容
+        var text = $('#txt').val();
+        // console.log(text);
+        
+        // 判断如果输入框中内容为空时，就停止下面的操作
+        if(!text)
+        return false;
+        // 创建span标签，将获取到的文本添加到标签中
+        $("<span></span>").text(text).css({
+            // 设置样式：定位，宽度，高度，字体大小，变粗，位置，颜色，高度
+            "position":"absolute",
+            "width":200,
+            "height":30,
+            "fontSize":"25px",
+            "fontWeight":"bold",
+            'right':50,
+            "color":getColor(),
+            "top":getHeight()
+            // 使用jQuery链式编程开启动画匀速位移，
+        }).animate({right:980},10000,'linear',function(){
+            // 位移结束后，进行自杀，即走到屏幕边缘就消失
+            $(this).remove();
+            // 将生成的span标签添加到装有video标签的盒子中
+            // 注意不能添加标签到video标签中，但是可以添加标签到video的父盒子里
+        }).appendTo($(".video"));
+        
+        // 最后清空文本框中的内容
+        $("#txt").val("");
+
+
+    })
+</script>
